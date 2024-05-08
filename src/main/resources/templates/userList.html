@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Список користувачів</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .mt-4 {
+            margin-top: 1.5rem;
+        }
+        .center-text {
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="container">
+<h2 class="center-text">Список користувачів</h2>
+
+<form action="#" method="post" th:action="@{/add-user}" class="mt-4">
+    <div class="form-row">
+        <div class="form-group col-md-4">
+            <label for="username">Ім'я користувача:</label>
+            <input type="text" id="username" name="username" class="form-control">
+        </div>
+        <div class="form-group col-md-4">
+            <label for="password">Пароль:</label>
+            <input type="password" id="password" name="password" class="form-control">
+        </div>
+        <div class="form-group col-md-2">
+            <label for="roleId">Роль:</label>
+            <select id="roleId" name="roleId" class="form-control">
+                <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"></option>
+            </select>
+        </div>
+        <div class="form-group col-md-2 align-self-end">
+            <label></label>
+            <button type="submit" class="btn btn-primary btn-block">Додати користувача</button>
+        </div>
+    </div>
+</form>
+
+<table class="table table-striped mt-4">
+    <thead>
+    <tr>
+        <th>Ім'я користувача</th>
+        <th>Роль</th>
+        <th>Дія</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="user : ${users}">
+        <td th:text="${user.username}"></td>
+        <td th:text="${user.role.name}"></td>
+        <td class="btn-group">
+            <form th:action="@{/edit-user}" method="get">
+                <input type="hidden" name="userId" th:value="${user.id}">
+                <button type="submit" class="btn btn-primary">Редагувати</button>
+            </form>
+            &nbsp;&nbsp;
+            <form th:action="@{/delete-user}" method="post">
+                <input type="hidden" name="userId" th:value="${user.id}">
+                <button type="submit" class="btn btn-danger">Видалити</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<br>
+<div class="center-text">
+    <a href="/" class="btn btn-secondary">Повернутися до меню адміністрування таблиць</a>
+</div>
+<br>
+
+<div th:if="${error}" style="color: red;" class="center-text">
+    <a th:text="${error}"></a>
+</div>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

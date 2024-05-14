@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document Management System</title>
+</head>
+<body>
+<h1>Document Management System</h1>
+<h2>Upload Document</h2>
+<form th:action="@{'/upload'}" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" required>
+    <button type="submit">Upload</button>
+</form>
+<h2>Document List</h2>
+<table border="1">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>View</th>
+        <th>Type</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <th:block th:each="document : ${documents}">
+        <tr>
+            <td th:text="${document.name}"></td>
+            <td>
+                <a th:href="@{'/view/' + ${document.id}}">View Content</a>
+            </td>
+            <td th:text="${document.type}"></td>
+
+            <td>
+                <form th:action="@{'/delete/' + ${document.id}}" th:method="post">
+                    <button type="submit">Delete</button>
+                </form>
+                <form th:action="@{'/download/' + ${document.id}}" th:method="get">
+                    <button type="submit">Download</button>
+                </form>
+            </td>
+        </tr>
+    </th:block>
+    </tbody>
+</table>
+</body>
+</html>

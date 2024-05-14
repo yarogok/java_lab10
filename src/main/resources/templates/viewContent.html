@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document Content</title>
+</head>
+<body>
+<h1 th:text="'Document Content: ' + ${documentName}"></h1>
+<div th:switch="${documentType}">
+    <embed th:src="@{'data:'+ ${documentType} + ';base64,' + ${documentContent}}" width="100%" height="600px" th:type="${documentType}" />
+</div>
+</body>
+</html>

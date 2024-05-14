@@ -4,6 +4,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
+import java.security.KeyPair;
 import java.util.*;
 
 @Entity
@@ -16,6 +17,7 @@ public class User implements UserDetails {
 
     @Column(name = "User_Name", nullable = false)
     private String username;
+
     @Column(name = "User_Password", nullable = false)
     private String password;
 
@@ -23,13 +25,24 @@ public class User implements UserDetails {
     @JoinColumn(name = "Role_ID", nullable = false)
     private Role role;
 
-    public User(){
-    }
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "Department_ID", nullable = false)
+    private Department department;
 
-    public User(String username, String password){
+    /*@Column(name = "Public_Key", nullable = false, columnDefinition = "TEXT")
+    private String publicKey; // Public key for digital signature
+
+    @Column(name = "Private_Key", nullable = false, columnDefinition = "TEXT")
+    private String privateKey; // Private key for digital signature
+
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
+    private Set<User> documents;*/
+
+    public User() {}
+
+    public User(String username, String password) {
         this.username = username;
         this.password = password;
-
     }
 
     @Override
@@ -89,4 +102,28 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    public Department getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(Department department) {
+        this.department = department;
+    }
+
+    /*public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    public String getPrivateKey() {
+        return privateKey;
+    }
+
+    public void setPrivateKey(String privateKey) {
+        this.privateKey = privateKey;
+    }*/
 }

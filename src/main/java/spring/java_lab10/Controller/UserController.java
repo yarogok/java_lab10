@@ -12,6 +12,7 @@ import spring.java_lab10.Model.User;
 import spring.java_lab10.Repository.RoleRepository;
 import spring.java_lab10.Repository.UserRepository;
 import spring.java_lab10.Security.InputValidation;
+import spring.java_lab10.Service.KeyManagementService;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +25,9 @@ public class UserController {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private KeyManagementService keyManagementService;
 
     @GetMapping("/user-list")
     public String userList(Model model) {
@@ -44,6 +48,7 @@ public class UserController {
             model.addAttribute("error", "Неправильний формат паролю.");
             return userList(model);
         }
+
         String encodedPassword = new BCryptPasswordEncoder().encode(password);
         User user = new User(username, encodedPassword);
         Optional<Role> optionalRole = roleRepository.findById(roleId);

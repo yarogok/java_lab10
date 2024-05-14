@@ -1,6 +1,6 @@
 package spring.java_lab10.Controller;
 
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -38,7 +38,7 @@ public class DocumentController {
     @Autowired
     private DigitalSignatureService digitalSignatureService;
 
-    //private static final Logger LOGGER = Logger.getLogger(YourApplication.class);
+    private final Logger LOGGER = Logger.getLogger(DocumentController.class);
 
     @GetMapping("/")
     public String index(Model model) {
@@ -60,19 +60,20 @@ public class DocumentController {
             } catch (Exception e) {
                 mess = "Signature verification failed: " + e.getMessage();
                 model.addAttribute("mess", mess);
+                LOGGER.debug(mess);
                 return index(model);
             }
 
             if (isSignatureValid) {
-                mess = "Signature is valid";
-                //LOGGER.debug("Signature is valid for {}", documentOptional.get().getName());
+                mess = "Signature is valid for " + documentOptional.get().getName();
+                LOGGER.debug(mess);
             } else {
-                mess = "Signature is not valid";
-                //LOGGER.debug("Signature is not valid for {}", documentOptional.get().getName());
+                mess = "Signature is not valid for " + documentOptional.get().getName();
+                LOGGER.debug(mess);
             }
         } else {
-            mess = "Document not found" + documentOptional.get().getName();
-            //LOGGER.debug("Document not found {}", documentOptional.get().getName());
+            mess = "Document not found";
+            LOGGER.debug(mess);
         }
 
         model.addAttribute("mess", mess);
@@ -98,6 +99,8 @@ public class DocumentController {
         byte[] signature = digitalSignatureService.sign(fileBytes);
         document.setSignature(signature);
 
+        LOGGER.debug("File with name " + originalFilename + " has been uploaded by " + authorName);
+
         documentRepository.save(document);
         return "redirect:/";
     }
@@ -113,10 +116,16 @@ public class DocumentController {
             model.addAttribute("documentName", document.getName());
             model.addAttribute("documentContent", base64EncodedDocument);
             model.addAttribute("documentType", document.getType());
+
+
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            LOGGER.debug("File with name " + document.getName() + " has been viewed by " + authentication.getName());
+
             return "viewContent";
 
         }else {
             mess = "Document not found";
+            LOGGER.debug(mess);
             model.addAttribute("mess", mess);
             return index(model);
         }
@@ -135,15 +144,27 @@ public class DocumentController {
             headers.setContentDispositionFormData("attachment", document.getName());
             headers.setContentLength(document.getContent().length);
 
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            LOGGER.debug("File with name " + document.getName() + " has been downloaded by " + authentication.getName());
+
             return new ResponseEntity<>(document.getContent(), headers, HttpStatus.OK);
         } else {
+            LOGGER.error("Document not found");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
     @PostMapping("/delete/{id}")
-    public String deleteDocument(@PathVariable Long id) {
-        documentRepository.deleteById(id);
+    public String deleteDocument(@PathVariable Long id, Model model) {
+        if (documentRepository.existsById(id)) {
+            documentRepository.deleteById(id);
+            LOGGER.debug("Document with" + id + " has been deleted");
+        } else{
+            String mess = "Document not found";
+            LOGGER.debug(mess);
+            model.addAttribute("mess", mess);
+            return index(model);
+        }
         return "redirect:/";
     }
 }

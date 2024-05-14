@@ -3,6 +3,7 @@ package spring.java_lab10.Service;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import spring.java_lab10.Model.User;
 
 import java.security.*;
 import java.util.Base64;
@@ -24,14 +25,12 @@ public class DigitalSignatureService {
         return signedBytes;
     }
 
-    public boolean verify(String document, String signatureString) throws Exception {
-        PublicKey publicKey = keyManagementService.getPublicKey();
+    public boolean verify(byte[] documentBytes, byte[] signatureBytes, User user) throws Exception {
+        PublicKey publicKey = keyManagementService.getPublicKey(user);
 
         Signature signature = Signature.getInstance("SHA256withRSA", new BouncyCastleProvider());
         signature.initVerify(publicKey);
-        signature.update(document.getBytes());
-
-        byte[] signatureBytes = Base64.getDecoder().decode(signatureString);
+        signature.update(documentBytes);
 
         return signature.verify(signatureBytes);
     }

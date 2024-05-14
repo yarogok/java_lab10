@@ -59,15 +59,10 @@ public class KeyManagementService {
         return keyFactory.generatePrivate(privateKeySpec);
     }
 
-    /////////////////////////////////yaasdfas
-    public PublicKey getPublicKey() throws Exception {
+    public PublicKey getPublicKey(User user) throws Exception {
         Security.addProvider(new BouncyCastleProvider());
-    ////////треба брати автора а не цього користувача
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
 
-        User user = userRepository.findByUsername(username);
-        if (user == null || user.getPublicKey() == null) {
+        if (user.getPublicKey() == null) {
             throw new Exception("Public key not found for the authenticated user.");
         }
 
@@ -80,7 +75,6 @@ public class KeyManagementService {
 
     public byte[] generateAESKeyFromFile() throws IOException {
         byte[] keyBytes = Files.readAllBytes(Paths.get("key.txt"));
-        // Обрізаємо ключ до потрібної довжини (256 біт)
         return truncateKeyToAESLength(keyBytes);
     }
 
@@ -88,7 +82,7 @@ public class KeyManagementService {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hashedBytes = digest.digest(keyBytes);
-            byte[] truncatedKey = new byte[32]; // AES-256 використовує 256-бітовий ключ
+            byte[] truncatedKey = new byte[32];
             System.arraycopy(hashedBytes, 0, truncatedKey, 0, 32);
             return truncatedKey;
         } catch (Exception e) {

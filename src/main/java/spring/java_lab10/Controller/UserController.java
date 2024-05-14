@@ -76,7 +76,7 @@ public class UserController {
             return userList(model);
         }
     }
-
+////////////////////////
     @GetMapping("/edit-user")
     public String editUser(@RequestParam Long userId, Model model) {
         Optional<User> optionalUser = userRepository.findById(userId);
@@ -91,7 +91,7 @@ public class UserController {
             return "redirect:/user-list";
         }
     }
-
+/////////////////////
     @PostMapping("/edit-user")
     public String updateUser(@RequestParam Long userId, @RequestParam String username, @RequestParam(required = false) String password, @RequestParam Long roleId, Model model) {
         Optional<User> optionalUser = userRepository.findById(userId);

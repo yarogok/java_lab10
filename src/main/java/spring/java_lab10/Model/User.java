@@ -2,9 +2,9 @@ package spring.java_lab10.Model;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.w3c.dom.stylesheets.DocumentStyle;
 
 import javax.persistence.*;
-import java.security.KeyPair;
 import java.util.*;
 
 @Entity
@@ -36,7 +36,7 @@ public class User implements UserDetails {
     private String privateKey; // Private key for digital signature
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
-    private Set<User> documents;
+    private Set<Document> documents;
 
     public User() {}
 
@@ -125,5 +125,13 @@ public class User implements UserDetails {
 
     public void setPrivateKey(String privateKey) {
         this.privateKey = privateKey;
+    }
+
+    public Set<Document> getDocuments() {
+        return documents;
+    }
+
+    public void setDocuments(Set<Document> documents) {
+        this.documents = documents;
     }
 }

@@ -1,5 +1,6 @@
 package spring.java_lab10.Controller;
 
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -12,13 +13,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import spring.java_lab10.Model.Document;
-import spring.java_lab10.Model.Role;
 import spring.java_lab10.Model.User;
 import spring.java_lab10.Repository.DocumentRepository;
 import spring.java_lab10.Repository.UserRepository;
+import spring.java_lab10.Service.DigitalSignatureService;
 import spring.java_lab10.Service.EncryptionService;
 
-import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -35,11 +35,48 @@ public class DocumentController {
     @Autowired
     private EncryptionService encryptionService;
 
+    @Autowired
+    private DigitalSignatureService digitalSignatureService;
+
+    //private static final Logger LOGGER = Logger.getLogger(YourApplication.class);
+
     @GetMapping("/")
     public String index(Model model) {
         List<Document> documents = documentRepository.findAll();
         model.addAttribute("documents", documents);
         return "index";
+    }
+
+    @GetMapping("/verify/{id}")
+    public String verifySignature(@PathVariable Long id, Model model) {
+        Optional<Document> documentOptional = documentRepository.findById(id);
+        String mess;
+
+        if (documentOptional.isPresent()) {
+            Document document = documentOptional.get();
+            boolean isSignatureValid;
+            try {
+                isSignatureValid = digitalSignatureService.verify(document.getContent(), document.getSignature(), document.getAuthor());
+            } catch (Exception e) {
+                mess = "Signature verification failed: " + e.getMessage();
+                model.addAttribute("mess", mess);
+                return index(model);
+            }
+
+            if (isSignatureValid) {
+                mess = "Signature is valid";
+                //LOGGER.debug("Signature is valid for {}", documentOptional.get().getName());
+            } else {
+                mess = "Signature is not valid";
+                //LOGGER.debug("Signature is not valid for {}", documentOptional.get().getName());
+            }
+        } else {
+            mess = "Document not found" + documentOptional.get().getName();
+            //LOGGER.debug("Document not found {}", documentOptional.get().getName());
+        }
+
+        model.addAttribute("mess", mess);
+        return index(model);
     }
 
     @PostMapping("/upload")
@@ -53,10 +90,14 @@ public class DocumentController {
         byte[] encFileBytes = encryptionService.encryptDocument(fileBytes);
         document.setContent(encFileBytes);
 
-        /*Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String authorName = authentication.getName();
         User author = userRepository.findByUsername(authorName);
-        document.setAuthor(author);*/
+        document.setAuthor(author);
+
+        byte[] signature = digitalSignatureService.sign(fileBytes);
+        document.setSignature(signature);
+
         documentRepository.save(document);
         return "redirect:/";
     }
@@ -64,16 +105,22 @@ public class DocumentController {
     @GetMapping("/view/{id}")
     public String viewContent(@PathVariable Long id, Model model) throws Exception {
         Optional<Document> result = documentRepository.findById(id);
+        String mess;
         if (result.isPresent()) {
             Document document = result.get();
             byte[] decFileBytes = encryptionService.decryptDocument(document.getContent());
             String base64EncodedDocument = Base64.getEncoder().encodeToString(decFileBytes);
             model.addAttribute("documentName", document.getName());
             model.addAttribute("documentContent", base64EncodedDocument);
-            model.addAttribute("documentType", document.getType()); // assuming you have a method to get document type
+            model.addAttribute("documentType", document.getType());
             return "viewContent";
+
+        }else {
+            mess = "Document not found";
+            model.addAttribute("mess", mess);
+            return index(model);
         }
-        return "redirect:/";
+
     }
 
     @GetMapping("/download/{id}")

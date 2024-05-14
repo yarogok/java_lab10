@@ -16,21 +16,25 @@
     <thead>
     <tr>
         <th>Name</th>
-        <th>View</th>
         <th>Type</th>
+        <th>Author</th>
         <th>Actions</th>
     </tr>
     </thead>
     <tbody>
     <th:block th:each="document : ${documents}">
-        <tr>
+        <tr th:if="${document.author.department.name == #authentication.principal.department.name}">
             <td th:text="${document.name}"></td>
-            <td>
-                <a th:href="@{'/view/' + ${document.id}}">View Content</a>
-            </td>
             <td th:text="${document.type}"></td>
+            <td th:text="${document.author.getUsername()}"></td>
 
             <td>
+                <form th:action="@{'/view/' + ${document.id}}" th:method="get">
+                    <button type="submit">View</button>
+                </form>
+                <form th:action="@{'/verify/' + ${document.id}}" th:method="get">
+                    <button type="submit">Verify</button>
+                </form>
                 <form th:action="@{'/delete/' + ${document.id}}" th:method="post">
                     <button type="submit">Delete</button>
                 </form>
@@ -42,5 +46,8 @@
     </th:block>
     </tbody>
 </table>
+
+<div th:if="${mess}" th:text="${mess}"></div>
+
 </body>
 </html>

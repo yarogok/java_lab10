@@ -13,7 +13,7 @@ public class Document {
     @Column(name = "Document_Name", nullable = false)
     private String name;
 
-    @Column(name = "Content", columnDefinition = "bytea")
+    @Column(name = "Content", nullable = false, columnDefinition = "bytea")
     private byte[] content;
 
     @Column(name = "Document_Type", nullable = false)
@@ -23,8 +23,8 @@ public class Document {
     @JoinColumn(name = "Author_ID", nullable = false)
     private User author;
 
-    @Column(name = "Document_Signature", nullable = false)
-    private String signature;
+    @Column(name = "Signature", nullable = false, columnDefinition = "bytea")
+    private byte[] signature;
 
     public Long getId() {
         return id;
@@ -58,12 +58,20 @@ public class Document {
         this.type = type;
     }
 
-    /*public User getAuthor() {
+    public User getAuthor() {
         return author;
     }
 
     public void setAuthor(User author) {
         this.author = author;
-    }*/
+    }
+
+    public byte[] getSignature() {
+        return signature;
+    }
+
+    public void setSignature(byte[] signature) {
+        this.signature = signature;
+    }
 }
 

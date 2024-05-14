@@ -33,7 +33,7 @@
             </select>
         </div>
         <div class="form-group col-md-2">
-            <label for="departmentId">Роль:</label>
+            <label for="departmentId">Відділ:</label>
             <select id="departmentId" name="departmentId" class="form-control">
                 <option th:each="department : ${departments}" th:value="${department.id}" th:text="${department.name}"></option>
             </select>

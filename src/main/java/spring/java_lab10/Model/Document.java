@@ -19,9 +19,12 @@ public class Document {
     @Column(name = "Document_Type", nullable = false)
     private String type;
 
-    /*@ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "Author_ID", nullable = false)
-    private User author;*/
+    private User author;
+
+    @Column(name = "Document_Signature", nullable = false)
+    private String signature;
 
     public Long getId() {
         return id;

@@ -29,14 +29,14 @@ public class User implements UserDetails {
     @JoinColumn(name = "Department_ID", nullable = false)
     private Department department;
 
-    /*@Column(name = "Public_Key", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "Public_Key", columnDefinition = "TEXT")
     private String publicKey; // Public key for digital signature
 
-    @Column(name = "Private_Key", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "Private_Key", columnDefinition = "TEXT")
     private String privateKey; // Private key for digital signature
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
-    private Set<User> documents;*/
+    private Set<User> documents;
 
     public User() {}
 
@@ -111,7 +111,7 @@ public class User implements UserDetails {
         this.department = department;
     }
 
-    /*public String getPublicKey() {
+    public String getPublicKey() {
         return publicKey;
     }
 
@@ -125,5 +125,5 @@ public class User implements UserDetails {
 
     public void setPrivateKey(String privateKey) {
         this.privateKey = privateKey;
-    }*/
+    }
 }

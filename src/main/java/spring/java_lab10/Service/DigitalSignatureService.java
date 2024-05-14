@@ -13,7 +13,7 @@ public class DigitalSignatureService {
     @Autowired
     private KeyManagementService keyManagementService;
 
-    /*public byte[] sign(byte[] documentBytes) throws Exception {
+    public byte[] sign(byte[] documentBytes) throws Exception {
         PrivateKey privateKey = keyManagementService.getPrivateKey();
 
         Signature signature = Signature.getInstance("SHA256withRSA", new BouncyCastleProvider());
@@ -34,5 +34,5 @@ public class DigitalSignatureService {
         byte[] signatureBytes = Base64.getDecoder().decode(signatureString);
 
         return signature.verify(signatureBytes);
-    }*/
+    }
 }

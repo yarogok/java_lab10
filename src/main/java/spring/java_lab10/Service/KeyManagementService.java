@@ -22,7 +22,7 @@ public class KeyManagementService {
     @Autowired
     private UserRepository userRepository;
 
-    /*public void generateAndStoreKeysForUser(User user) throws Exception {
+    public void generateAndStoreKeysForUser(User user) throws Exception {
         Security.addProvider(new BouncyCastleProvider());
 
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", new BouncyCastleProvider());
@@ -76,7 +76,7 @@ public class KeyManagementService {
 
         KeyFactory keyFactory = KeyFactory.getInstance("RSA", new BouncyCastleProvider());
         return keyFactory.generatePublic(publicKeySpec);
-    }*/
+    }
 
     public byte[] generateAESKeyFromFile() throws IOException {
         byte[] keyBytes = Files.readAllBytes(Paths.get("key.txt"));

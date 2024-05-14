@@ -27,6 +27,12 @@
             <input type="password" id="password" name="password" class="form-control">
         </div>
         <div class="form-group col-md-2">
+            <label for="roleId">Роль:</label>
+            <select id="roleId" name="roleId" class="form-control">
+                <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"></option>
+            </select>
+        </div>
+        <div class="form-group col-md-2">
             <label for="departmentId">Роль:</label>
             <select id="departmentId" name="departmentId" class="form-control">
                 <option th:each="department : ${departments}" th:value="${department.id}" th:text="${department.name}"></option>
@@ -44,6 +50,7 @@
     <tr>
         <th>Ім'я користувача</th>
         <th>Роль</th>
+        <th>Відділ</th>
         <th>Дія</th>
     </tr>
     </thead>
@@ -51,6 +58,7 @@
     <tr th:each="user : ${users}">
         <td th:text="${user.username}"></td>
         <td th:text="${user.role.name}"></td>
+        <td th:text="${user.department.name}"></td>
         <td class="btn-group">
             <form th:action="@{/edit-user}" method="get">
                 <input type="hidden" name="userId" th:value="${user.id}">

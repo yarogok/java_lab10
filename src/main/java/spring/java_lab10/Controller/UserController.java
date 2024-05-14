@@ -7,8 +7,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import spring.java_lab10.Model.Department;
 import spring.java_lab10.Model.Role;
 import spring.java_lab10.Model.User;
+import spring.java_lab10.Repository.DepartmentRepository;
 import spring.java_lab10.Repository.RoleRepository;
 import spring.java_lab10.Repository.UserRepository;
 import spring.java_lab10.Security.InputValidation;
@@ -27,19 +29,24 @@ public class UserController {
     private RoleRepository roleRepository;
 
     @Autowired
+    private DepartmentRepository departmentRepository;
+
+    @Autowired
     private KeyManagementService keyManagementService;
 
     @GetMapping("/user-list")
     public String userList(Model model) {
         List<User> users = userRepository.findAll();
         List<Role> roles = roleRepository.findAll();
+        List<Department> departments = departmentRepository.findAll();
         model.addAttribute("users", users);
         model.addAttribute("roles", roles);
+        model.addAttribute("departments", departments);
         return "userList";
     }
 
     @PostMapping("/add-user")
-    public String addUser(@RequestParam String username, @RequestParam String password, @RequestParam Long roleId, Model model) {
+    public String addUser(@RequestParam String username, @RequestParam String password, @RequestParam Long roleId, @RequestParam Long departmentId, Model model) throws Exception {
         if (!InputValidation.isValidText(username)) {
             model.addAttribute("error", "Неправильний формат імені користувача.");
             return userList(model);
@@ -53,13 +60,19 @@ public class UserController {
         User user = new User(username, encodedPassword);
         Optional<Role> optionalRole = roleRepository.findById(roleId);
 
-        if (optionalRole.isPresent()) {
+        Optional<Department> optionalDepartment = departmentRepository.findById(departmentId);
+
+
+        if (optionalRole.isPresent() || optionalDepartment.isPresent()) {
             Role userRole = optionalRole.get();
             user.setRole(userRole);
-            userRepository.save(user);
+            Department department = optionalDepartment.get();
+            user.setDepartment(department);
+
+            keyManagementService.generateAndStoreKeysForUser(user);
             return "redirect:/user-list";
         } else {
-            model.addAttribute("error", " Виникла помилка при роботі з ролями.");
+            model.addAttribute("error", " Виникла помилка при роботі з ролями/департаментами.");
             return userList(model);
         }
     }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import spring.java_lab10.Configuration.CryptoConfig;
 import spring.java_lab10.Model.Document;
 import spring.java_lab10.Model.User;
 import spring.java_lab10.Repository.DocumentRepository;

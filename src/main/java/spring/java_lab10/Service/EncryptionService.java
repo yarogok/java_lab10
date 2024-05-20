@@ -16,10 +16,6 @@ public class EncryptionService {
     @Autowired
     private KeyManagementService keyManagementService;
 
-    static {
-        Security.addProvider(new BouncyCastleProvider());
-    }
-
     public byte[] encryptDocument(byte[] documentBytes) throws Exception {
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         byte[] secretKeyBytes = keyManagementService.generateAESKeyFromFile();

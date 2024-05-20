@@ -3,6 +3,7 @@ package spring.java_lab10.Model;
 import javax.persistence.*;
 
 @Entity
+@Table(name = "Documents")
 public class Document {
 
     @Id

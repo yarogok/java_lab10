@@ -22,10 +22,11 @@ public class KeyManagementService {
     @Autowired
     private UserRepository userRepository;
 
-    public void generateAndStoreKeysForUser(User user) throws Exception {
-        Security.addProvider(new BouncyCastleProvider());
+    @Autowired
+    private BouncyCastleProvider provider;
 
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", new BouncyCastleProvider());
+    public void generateAndStoreKeysForUser(User user) throws Exception {
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", provider.getName());
         keyPairGenerator.initialize(2048);
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
@@ -42,8 +43,6 @@ public class KeyManagementService {
     }
 
     public PrivateKey getPrivateKey() throws Exception {
-        Security.addProvider(new BouncyCastleProvider());
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
@@ -55,13 +54,11 @@ public class KeyManagementService {
         byte[] privateKeyBytes = Base64.getDecoder().decode(user.getPrivateKey());
         PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
 
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA", new BouncyCastleProvider());
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA", provider.getName());
         return keyFactory.generatePrivate(privateKeySpec);
     }
 
     public PublicKey getPublicKey(User user) throws Exception {
-        Security.addProvider(new BouncyCastleProvider());
-
         if (user.getPublicKey() == null) {
             throw new Exception("Public key not found for the authenticated user.");
         }
@@ -69,7 +66,7 @@ public class KeyManagementService {
         byte[] publicKeyBytes = Base64.getDecoder().decode(user.getPublicKey());
         X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyBytes);
 
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA", new BouncyCastleProvider());
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA", provider.getName());
         return keyFactory.generatePublic(publicKeySpec);
     }
 

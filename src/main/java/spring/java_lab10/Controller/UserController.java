@@ -76,28 +76,38 @@ public class UserController {
             return userList(model);
         }
     }
-////////////////////////
+
     @GetMapping("/edit-user")
     public String editUser(@RequestParam Long userId, Model model) {
         Optional<User> optionalUser = userRepository.findById(userId);
         List<Role> roles = roleRepository.findAll();
+        List<Department> departments = departmentRepository.findAll(); // Додано отримання списку відділів
 
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
             model.addAttribute("user", user);
             model.addAttribute("roles", roles);
+            model.addAttribute("departments", departments); // Додано до моделі
             return "editUser";
         } else {
             return "redirect:/user-list";
         }
     }
-/////////////////////
+
     @PostMapping("/edit-user")
-    public String updateUser(@RequestParam Long userId, @RequestParam String username, @RequestParam(required = false) String password, @RequestParam Long roleId, Model model) {
+    public String updateUser(
+            @RequestParam Long userId,
+            @RequestParam String username,
+            @RequestParam(required = false) String password,
+            @RequestParam Long roleId,
+            @RequestParam Long departmentId, // Додано параметр departmentId
+            Model model) {
+
         Optional<User> optionalUser = userRepository.findById(userId);
         Optional<Role> optionalRole = roleRepository.findById(roleId);
+        Optional<Department> optionalDepartment = departmentRepository.findById(departmentId); // Додано пошук відділу
 
-        if (optionalUser.isPresent() && optionalRole.isPresent()) {
+        if (optionalUser.isPresent() && optionalRole.isPresent() && optionalDepartment.isPresent()) { // Перевірка наявності відділу
             User user = optionalUser.get();
             if (!InputValidation.isValidText(username)) {
                 model.addAttribute("error", "Неправильний формат імені користувача.");
@@ -114,6 +124,10 @@ public class UserController {
             user.setUsername(username);
             Role userRole = optionalRole.get();
             user.setRole(userRole);
+
+            Department userDepartment = optionalDepartment.get();
+            user.setDepartment(userDepartment);
+
             userRepository.save(user);
         }
         return "redirect:/user-list";

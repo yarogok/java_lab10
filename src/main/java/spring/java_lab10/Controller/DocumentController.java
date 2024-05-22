@@ -12,7 +12,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import spring.java_lab10.Configuration.CryptoConfig;
 import spring.java_lab10.Model.Document;
 import spring.java_lab10.Model.User;
 import spring.java_lab10.Repository.DocumentRepository;
@@ -42,9 +41,15 @@ public class DocumentController {
     private final Logger LOGGER = Logger.getLogger(DocumentController.class);
 
     @GetMapping("/")
-    public String index(Model model) {
-        List<Document> documents = documentRepository.findAll();
+    public String index(@RequestParam(value = "", required = false) String search, Model model) {
+        List<Document> documents;
+        if (search != null && !search.isEmpty()) {
+            documents = documentRepository.findByNameContainingIgnoreCase(search);
+        } else {
+            documents = documentRepository.findAll();
+        }
         model.addAttribute("documents", documents);
+        model.addAttribute("search", search);
         return "index";
     }
 
@@ -57,12 +62,12 @@ public class DocumentController {
             Document document = documentOptional.get();
             boolean isSignatureValid;
             try {
-                isSignatureValid = digitalSignatureService.verify(document.getContent(), document.getSignature(), document.getAuthor());
+                isSignatureValid = digitalSignatureService.verify(encryptionService.decryptDocument(document.getContent()), document.getSignature(), document.getAuthor());
             } catch (Exception e) {
                 mess = "Signature verification failed: " + e.getMessage();
                 model.addAttribute("mess", mess);
                 LOGGER.debug(mess);
-                return index(model);
+                return index("", model);
             }
 
             if (isSignatureValid) {
@@ -78,11 +83,17 @@ public class DocumentController {
         }
 
         model.addAttribute("mess", mess);
-        return index(model);
+        return index("", model);
     }
 
     @PostMapping("/upload")
-    public String uploadDocument(@RequestParam("file") MultipartFile file) throws Exception {
+    public String uploadDocument(@RequestParam("file") MultipartFile file, Model model) throws Exception {
+        if (file.isEmpty()) {
+            LOGGER.debug("File with name " + file.getOriginalFilename() + " is empty");
+            model.addAttribute("mess", "File with name " + file.getOriginalFilename() + " is empty");
+            return index("", model);
+        }
+
         Document document = new Document();
         String originalFilename = file.getOriginalFilename();
         document.setName(originalFilename);
@@ -97,7 +108,7 @@ public class DocumentController {
         User author = userRepository.findByUsername(authorName);
         document.setAuthor(author);
 
-        byte[] signature = digitalSignatureService.sign(fileBytes);
+        String signature = digitalSignatureService.sign(fileBytes);
         document.setSignature(signature);
 
         LOGGER.debug("File with name " + originalFilename + " has been uploaded by " + authorName);
@@ -109,28 +120,30 @@ public class DocumentController {
     @GetMapping("/view/{id}")
     public String viewContent(@PathVariable Long id, Model model) throws Exception {
         Optional<Document> result = documentRepository.findById(id);
-        String mess;
+
         if (result.isPresent()) {
             Document document = result.get();
+            User authenticatedUser = getAuthenticatedUser();
+            if (!document.getAuthor().getDepartment().getId().equals(authenticatedUser.getDepartment().getId())) {
+                return "redirect:/403";
+            }
+
             byte[] decFileBytes = encryptionService.decryptDocument(document.getContent());
             String base64EncodedDocument = Base64.getEncoder().encodeToString(decFileBytes);
             model.addAttribute("documentName", document.getName());
             model.addAttribute("documentContent", base64EncodedDocument);
             model.addAttribute("documentType", document.getType());
 
-
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            LOGGER.debug("File with name " + document.getName() + " has been viewed by " + authentication.getName());
+            LOGGER.debug("File with name " + document.getName() + " has been viewed by " + authenticatedUser.getUsername());
 
             return "viewContent";
 
-        }else {
-            mess = "Document not found";
+        } else {
+            String mess = "Document not found";
             LOGGER.debug(mess);
             model.addAttribute("mess", mess);
-            return index(model);
+            return index("", model);
         }
-
     }
 
     @GetMapping("/download/{id}")
@@ -139,16 +152,28 @@ public class DocumentController {
 
         if (documentOptional.isPresent()) {
             Document document = documentOptional.get();
+            User authenticatedUser = getAuthenticatedUser();
+
+            if (!document.getAuthor().getDepartment().getId().equals(authenticatedUser.getDepartment().getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
+            byte[] decryptedContent;
+            try {
+                decryptedContent = encryptionService.decryptDocument(document.getContent());
+            } catch (Exception e) {
+                LOGGER.error("Error decrypting document with id " + id, e);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             headers.setContentDispositionFormData("attachment", document.getName());
-            headers.setContentLength(document.getContent().length);
+            headers.setContentLength(decryptedContent.length);
 
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            LOGGER.debug("File with name " + document.getName() + " has been downloaded by " + authentication.getName());
+            LOGGER.debug("File with name " + document.getName() + " has been downloaded by " + authenticatedUser.getUsername());
 
-            return new ResponseEntity<>(document.getContent(), headers, HttpStatus.OK);
+            return new ResponseEntity<>(decryptedContent, headers, HttpStatus.OK);
         } else {
             LOGGER.error("Document not found");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -157,15 +182,29 @@ public class DocumentController {
 
     @PostMapping("/delete/{id}")
     public String deleteDocument(@PathVariable Long id, Model model) {
-        if (documentRepository.existsById(id)) {
+        Optional<Document> documentOptional = documentRepository.findById(id);
+
+        if (documentOptional.isPresent()) {
+            Document document = documentOptional.get();
+            User authenticatedUser = getAuthenticatedUser();
+            if (!document.getAuthor().getDepartment().getId().equals(authenticatedUser.getDepartment().getId())) {
+                return "redirect:/403";
+            }
+
             documentRepository.deleteById(id);
-            LOGGER.debug("Document with" + id + " has been deleted");
-        } else{
+            LOGGER.debug("Document with id " + id + " has been deleted by " + authenticatedUser.getUsername());
+        } else {
             String mess = "Document not found";
             LOGGER.debug(mess);
             model.addAttribute("mess", mess);
-            return index(model);
+            return index("", model);
         }
         return "redirect:/";
     }
+
+    private User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return (User) authentication.getPrincipal();
+    }
+
 }

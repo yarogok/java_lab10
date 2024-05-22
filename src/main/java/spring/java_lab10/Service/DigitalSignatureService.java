@@ -5,11 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import spring.java_lab10.Model.User;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.security.*;
+import java.util.Base64;
 
 @Service
 public class DigitalSignatureService {
@@ -20,7 +17,7 @@ public class DigitalSignatureService {
     @Autowired
     private BouncyCastleProvider provider;
 
-    public byte[] sign(byte[] documentBytes) throws Exception {
+    public String sign(byte[] documentBytes) throws Exception {
         PrivateKey privateKey = keyManagementService.getPrivateKey();
 
         Signature signature = Signature.getInstance("SHA256withRSA", provider.getName());
@@ -28,16 +25,17 @@ public class DigitalSignatureService {
         signature.update(documentBytes);
         byte[] signedBytes = signature.sign();
 
-        return signedBytes;
+        return Base64.getEncoder().encodeToString(signedBytes);
     }
 
-    public boolean verify(byte[] documentBytes, byte[] signatureBytes, User user) throws Exception {
+    public boolean verify(byte[] documentBytes, String signatureString, User user) throws Exception {
         PublicKey publicKey = keyManagementService.getPublicKey(user);
 
         Signature signature = Signature.getInstance("SHA256withRSA", provider.getName());
         signature.initVerify(publicKey);
         signature.update(documentBytes);
 
+        byte[] signatureBytes = Base64.getDecoder().decode(signatureString);
         return signature.verify(signatureBytes);
     }
 }

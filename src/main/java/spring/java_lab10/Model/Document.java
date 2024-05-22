@@ -24,8 +24,8 @@ public class Document {
     @JoinColumn(name = "Author_ID", nullable = false)
     private User author;
 
-    @Column(name = "Signature", nullable = false, columnDefinition = "bytea")
-    private byte[] signature;
+    @Column(name = "Signature", nullable = false, columnDefinition = "text")
+    private String signature;
 
     public Long getId() {
         return id;
@@ -67,11 +67,11 @@ public class Document {
         this.author = author;
     }
 
-    public byte[] getSignature() {
+    public String getSignature() {
         return signature;
     }
 
-    public void setSignature(byte[] signature) {
+    public void setSignature(String signature) {
         this.signature = signature;
     }
 }

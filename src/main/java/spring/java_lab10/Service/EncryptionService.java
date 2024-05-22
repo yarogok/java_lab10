@@ -1,12 +1,10 @@
 package spring.java_lab10.Service;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.Security;
 
 @Service
 public class EncryptionService {

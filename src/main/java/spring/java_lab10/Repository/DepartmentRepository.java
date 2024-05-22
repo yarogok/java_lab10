@@ -6,4 +6,5 @@ import spring.java_lab10.Model.Department;
 
 @Repository
 public interface DepartmentRepository extends JpaRepository<Department, Long> {
+    Department findByName(String name);
 }

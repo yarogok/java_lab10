@@ -2,23 +2,52 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Document Management System</title>
+    <title>Список документів</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .mt-4 {
+            margin-top: 1.5rem;
+        }
+        .center-text {
+            text-align: center;
+        }
+    </style>
 </head>
-<body>
-<h1>Document Management System</h1>
-<h2>Upload Document</h2>
-<form th:action="@{'/upload'}" method="post" enctype="multipart/form-data">
-    <input type="file" name="file" required>
-    <button type="submit">Upload</button>
+<body class="container">
+
+<h2 class="center-text mt-4">Список документів</h2>
+
+<form th:action="@{'/upload'}" method="post" enctype="multipart/form-data" class="mt-4">
+    <div class="form-row align-items-center">
+        <div class="col">
+            <input type="file" name="file" class="form-control" required>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Додати</button>
+        </div>
+    </div>
 </form>
-<h2>Document List</h2>
-<table border="1">
-    <thead>
+
+<form th:action="@{/}" method="get" class="mt-4">
+    <div class="form-row align-items-center">
+        <div class="col">
+            <input type="text" name="search" class="form-control" placeholder="Пошук за назвою" th:value="${search}">
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Пошук</button>
+        </div>
+    </div>
+</form>
+
+<div th:if="${mess}" th:text="${mess}" class="mt-4 text-center"></div>
+
+<table class="table table-striped mt-4">
+    <thead class="thead-dark">
     <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Author</th>
-        <th>Actions</th>
+        <th>Назва</th>
+        <th>Тип</th>
+        <th>Автор</th>
+        <th>Дія</th>
     </tr>
     </thead>
     <tbody>
@@ -27,19 +56,18 @@
             <td th:text="${document.name}"></td>
             <td th:text="${document.type}"></td>
             <td th:text="${document.author.getUsername()}"></td>
-
-            <td>
-                <form th:action="@{'/view/' + ${document.id}}" th:method="get">
-                    <button type="submit">View</button>
+            <td class="btn-group">
+                <form th:action="@{'/view/' + ${document.id}}" th:method="get" class="mr-1">
+                    <button type="submit" class="btn btn-info">Переглянути</button>
                 </form>
-                <form th:action="@{'/verify/' + ${document.id}}" th:method="get">
-                    <button type="submit">Verify</button>
+                <form th:action="@{'/verify/' + ${document.id}}" th:method="get" class="mr-1">
+                    <button type="submit" class="btn btn-success">Верифікувати</button>
                 </form>
-                <form th:action="@{'/delete/' + ${document.id}}" th:method="post">
-                    <button type="submit">Delete</button>
+                <form th:action="@{'/delete/' + ${document.id}}" th:method="post" class="mr-1">
+                    <button type="submit" class="btn btn-danger">Видалити</button>
                 </form>
                 <form th:action="@{'/download/' + ${document.id}}" th:method="get">
-                    <button type="submit">Download</button>
+                    <button type="submit" class="btn btn-secondary">Завантажити</button>
                 </form>
             </td>
         </tr>
@@ -47,7 +75,14 @@
     </tbody>
 </table>
 
-<div th:if="${mess}" th:text="${mess}"></div>
+<div class="center-text mt-4" th:if="${#authorization.expression('hasRole(''ROLE_ADMIN'')')}">
+    <a href="/user-list" class="btn btn-secondary">Меню користувачів</a>
+</div>
 
+<div class="center-text mt-4">
+    <a href="/logout" class="btn btn-secondary">Вихід</a>
+</div>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
